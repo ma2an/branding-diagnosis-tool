@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ブランディング診断ツール</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.7;
+            color: #333333;
+            background: #e8e8e8;
+            min-height: 100vh;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #e8e8e8 0%, #d5d5d5 50%, #e8e8e8 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            margin-top: 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .mela-logo {
+            width: 300px;
+            height: auto;
+            margin: 0 auto 30px auto;
+            display: block;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .mela-logo:hover {
+            transform: translateY(-3px);
+            filter: drop-shadow(0 10px 25px rgba(230, 0, 0, 0.4));
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 20px;
+            letter-spacing: 0.02em;
+            color: rgb(227, 52, 47);
+            text-shadow: none;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666666;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            line-height: 1.8;
+        }
+
+        .diagnosis-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(227, 52, 47, 0.1);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .diagnosis-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgb(227, 52, 47);
+        }
+
+        .user-info {
+            background: rgba(227, 52, 47, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(227, 52, 47, 0.2);
+        }
+
+        .user-info h3 {
+            color: rgb(227, 52, 47);
+            margin-bottom: 25px;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(102, 102, 102, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333333;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: rgb(227, 52, 47);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 20px rgba(227, 52, 47, 0.2);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(102, 102, 102, 0.6);
+        }
+
+        .fixed-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(232, 232, 232, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(227, 52, 47, 0.2);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .fixed-progress-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .progress-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #333333;
+            font-weight: 500;
+        }
+
+        .questions-remaining {
+            font-size: 0.9rem;
+            color: #ff0000;
+            font-weight: 700;
+            background: rgba(255, 0, 0, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .fixed-progress-bar {
+            flex: 1;
+            background: rgba(102, 102, 102, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            margin: 0 20px;
+        }
+
+        .fixed-progress-fill {
+            height: 100%;
+            background: #ff0000;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-percentage {
+            font-size: 0.9rem;
+            color: #333333;
+            font-weight: 700;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .category {
+            margin-bottom: 50px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(227, 52, 47, 0.3);
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 1.6rem;
+            color: #ffffff;
+            font-weight: 900;
+            background: rgb(227, 52, 47);
+            box-shadow: 0 10px 30px rgba(227, 52, 47, 0.3);
+        }
+
+        .category-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #333333;
+        }
+
+        .category-subtitle {
+            font-size: 0.95rem;
+            color: #666666;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        .question {
+            margin-bottom: 35px;
+        }
+
+        .question-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .question-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #ff0000;
+            border-radius: 2px;
+        }
+
+        .option {
+            display: block;
+            padding: 20px 25px;
+            margin-bottom: 12px;
+            border: 2px solid rgba(102, 102, 102, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #333333;
+            font-weight: 400;
+        }
+
+        .option:hover {
+            border-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+            transform: translateX(8px);
+        }
+
+        .option input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.3);
+            accent-color: #ff0000;
+        }
+
+        .option.selected {
+            border-color: #ff0000;
+            background: #ff0000;
+            color: #ffffff;
+            transform: translateX(12px);
+            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+        }
+
+        .calculate-btn {
+            background: rgb(227, 52, 47);
+            color: #ffffff;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(227, 52, 47, 0.3);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(227, 52, 47, 0.4);
+        }
+
+        .calculate-btn:disabled {
+            background: rgba(102, 102, 102, 0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .result-card {
+            background: #ff0000;
+            color: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(255, 0, 0, 0.3);
+        }
+
+        .total-score {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        .score-label {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* 改善されたパターン情報セクション */
+        .pattern-info {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 0, 0.1);
+        }
+
+        .pattern-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pattern-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .pattern-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 0, 0, 0.2);
+        }
+
+        .pattern-category-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #666666;
+            margin-bottom: 5px;
+        }
+
+        .pattern-grade {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .pattern-grade.grade-A {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.4);
+        }
+
+        .pattern-grade.grade-B {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.4);
+        }
+
+        .pattern-grade.grade-C {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .pattern-grade.grade-D {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            box-shadow: 0 10px 25px rgba(149, 165, 166, 0.4);
+        }
+
+        .pattern-category-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333333;
+            text-align: center;
+        }
+
+        .pattern-overall {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 0, 0, 0.1);
+        }
+
+        .pattern-code {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff0000;
+            margin-bottom: 10px;
+            letter-spacing: 0.2em;
+        }
+
+        .pattern-description {
+            font-size: 1.1rem;
+            color: #666666;
+            line-height: 1.6;
+        }
+
+        .category-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .category-result {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-result:hover {
+            transform: translateY(-5px);
+        }
+
+        /* カテゴリ別の色分け */
+        .category-result.mi-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+        }
+
+        .category-result.vi-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+        }
+
+        .category-result.bi-result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #e67e22, #d35400);
+        }
+
+        .category-result-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .category-result-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .mi-result .category-result-icon {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .vi-result .category-result-icon {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 8px 20px rgba(155, 89, 182, 0.3);
+        }
+
+        .bi-result .category-result-icon {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            box-shadow: 0 8px 20px rgba(230, 126, 34, 0.3);
+        }
+
+        .category-result-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333333;
+        }
+
+        .category-score {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            color: #ff0000;
+        }
+
+        .category-grade-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .category-grade {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .category-level {
+            font-size: 1.1rem;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .level-excellent { background: #27ae60; color: white; }
+        .level-good { background: #f39c12; color: white; }
+        .level-fair { background: #e74c3c; color: white; }
+        .level-poor { background: #95a5a6; color: white; }
+
+        .recommendations {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(227, 52, 47, 0.1);
+        }
+
+        .recommendations h3 {
+            color: rgb(227, 52, 47);
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .recommendation-item {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(227, 52, 47, 0.05);
+            border-left: 4px solid rgb(227, 52, 47);
+            border-radius: 12px;
+            color: #333333;
+            line-height: 1.7;
+        }
+
+        .recommendation-category {
+            display: inline-block;
+            background: rgb(227, 52, 47);
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(227, 52, 47, 0.3);
+        }
+
+        .recommendation-content {
+            margin-top: 15px;
+            padding-left: 10px;
+            border-left: 2px solid rgba(227, 52, 47, 0.3);
+            padding-top: 10px;
+        }
+
+        .urgency-critical {
+            border-left-color: #ff0000;
+            background: rgba(255, 0, 0, 0.15);
+            animation: pulse 2s infinite;
+        }
+
+        .urgency-high {
+            border-left-color: #ff6600;
+            background: rgba(255, 102, 0, 0.1);
+        }
+
+        .urgency-medium {
+            border-left-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+        }
+
+        .urgency-low {
+            border-left-color: #00aa44;
+            background: rgba(0, 170, 68, 0.1);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+            color: #333333;
+            font-weight: 500;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border: 3px solid rgba(227, 52, 47, 0.2);
+            border-top: 3px solid rgb(227, 52, 47);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message, .error-message {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success-message {
+            background: rgba(39, 174, 96, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+        }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 10px; }
+            .diagnosis-card { padding: 30px 20px; }
+            .category-header { flex-direction: column; text-align: center; }
+            .category-icon { margin-right: 0; margin-bottom: 15px; }
+            .category-results { grid-template-columns: 1fr; }
+            .pattern-display { flex-direction: column; gap: 20px; }
+            .option { padding: 15px 20px; }
+            .calculate-btn { padding: 15px 40px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="fixed-progress" id="fixedProgress">
+        <div class="fixed-progress-content">
+            <div class="progress-info">
+                <div class="progress-text">診断進行状況</div>
+                <div class="questions-remaining" id="questionsRemaining">残り 12問</div>
+            </div>
+            <div class="fixed-progress-bar">
+                <div class="fixed-progress-fill" id="fixedProgressFill"></div>
+            </div>
+            <div class="progress-percentage" id="progressPercentage">0%</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <img src="./mela-logo.svg" alt="mela creative studio" class="mela-logo">
+            <h1>ブランディング診断ツール</h1>
+            <p>企業のブランド力を MI・VI・BI の3つの観点から総合的に診断します</p>
+        </div>
+
+        <div class="diagnosis-card">
+            <div class="user-info">
+                <h3>回答者情報</h3>
+                <div class="form-group">
+                    <label for="userName">お名前 *</label>
+                    <input type="text" id="userName" required placeholder="山田太郎">
+                </div>
+                <div class="form-group">
+                    <label for="userCompany">会社名</label>
+                    <input type="text" id="userCompany" placeholder="株式会社サンプル">
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">メールアドレス</label>
+                    <input type="email" id="userEmail" placeholder="example@company.com">
+                </div>
+            </div>
+
+            <!-- MI Section -->
+            <div class="category">
+                <div class="category-header">
+                    <div class="category-icon">MI</div>
+                    <div>
+                        <div class="category-title">Mind Identity</div>
+                        <div class="category-subtitle">企業理念・思想・価値観</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">①企業理念の有無</div>
+                    <label class="option">
+                        <input type="radio" name="mi1" value="9">
+                        経営層の思想を反映した納得いく企業理念がある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi1" value="5">
+                        企業理念はあるが完全にしっくりきてはいない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi1" value="3">
+                        企業理念はあるが全然しっくりきていない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi1" value="0">
+                        企業理念がない、またはあるけど覚えていない
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">②企業理念への理解</div>
+                    <label class="option">
+                        <input type="radio" name="mi2" value="9">
+                        ミッション・ビジョン・バリューなどそれぞれの役割を完全に理解している
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi2" value="5">
+                        ミッション・ビジョン・バリューを一通り決めているが役割の理解は曖昧である
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi2" value="3">
+                        キャッチコピー的なものはあるがどの定義に当てはまるのかわからない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi2" value="0">
+                        企業理念がない、またはあるけど覚えていない
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">③企業理念の浸透</div>
+                    <label class="option">
+                        <input type="radio" name="mi3" value="9">
+                        全てのメンバーが理念を完璧に理解・記憶し、理念に沿った思考・行動ができている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi3" value="5">
+                        役員など一部のメンバーが理念を理解・記憶し、理念に沿った思考・行動をしている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi3" value="3">
+                        ほとんどのメンバーが理念を理解していない、または記憶していない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi3" value="0">
+                        企業理念がない、またはあるけど覚えていない
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">④理念の市場・社会への接続</div>
+                    <label class="option">
+                        <input type="radio" name="mi4" value="9">
+                        自社の理念が明確に社会課題や市場のニーズと接続しており、独自性がある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi4" value="5">
+                        ある程度は社会課題や市場ニーズを意識しているが、独自性は弱い
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi4" value="3">
+                        理念はあるが、社会課題や市場との関連は意識していない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="mi4" value="0">
+                        理念がない、またはあるが、単なるスローガンになっている
+                    </label>
+                </div>
+            </div>
+
+            <!-- VI Section -->
+            <div class="category">
+                <div class="category-header">
+                    <div class="category-icon">VI</div>
+                    <div>
+                        <div class="category-title">Visual Identity</div>
+                        <div class="category-subtitle">ロゴ・デザイン・ビジュアル表現</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">①ロゴについて</div>
+                    <label class="option">
+                        <input type="radio" name="vi1" value="8">
+                        自社の理念を完璧に体現したロゴがある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi1" value="5">
+                        納得しているロゴはあるが、理念を体現しているかはわからない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi1" value="3">
+                        あまり納得はしていない一旦作ったロゴがある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi1" value="0">
+                        ロゴがない、またはあるけど全く気に入っていない
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">②ウェブサイトについて</div>
+                    <label class="option">
+                        <input type="radio" name="vi2" value="8">
+                        自社の理念やらしさが視覚的にも情報的にも伝わるウェブサイトがある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi2" value="5">
+                        ある程度まとまっているサイトはあるが、理念やらしさが表現されているかわからない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi2" value="3">
+                        あまり納得はしていない一旦作ったウェブサイトがある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi2" value="0">
+                        ウェブサイトがない、またはあるけど全く気に入っていない
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">③ブランドガイドラインの有無と活用状況</div>
+                    <label class="option">
+                        <input type="radio" name="vi3" value="8">
+                        ビジュアルに関するガイドラインが整備され、すべてのツールで徹底運用されている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi3" value="5">
+                        ガイドラインはあるが、実務での遵守は一部に留まっている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi3" value="3">
+                        簡易的なルールはあるが、各部門でバラバラに運用されている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi3" value="0">
+                        ガイドラインがない、または存在するか不明である
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">④ブランド表現の更新・進化状況</div>
+                    <label class="option">
+                        <input type="radio" name="vi4" value="8">
+                        ブランドのビジュアル表現は定期的に見直され、時代や市場の変化に合わせて進化している
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi4" value="5">
+                        過去に一度刷新したが、その後は特に見直していない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi4" value="3">
+                        長年ビジュアルを見直しておらず、古さを感じる部分がある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="vi4" value="0">
+                        ビジュアルの刷新や改善を考えたことがない
+                    </label>
+                </div>
+            </div>
+
+            <!-- BI Section -->
+            <div class="category">
+                <div class="category-header">
+                    <div class="category-icon">BI</div>
+                    <div>
+                        <div class="category-title">Behavior Identity</div>
+                        <div class="category-subtitle">行動・組織・人材・文化</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">①採用活動と理念の一貫性</div>
+                    <label class="option">
+                        <input type="radio" name="bi1" value="8">
+                        採用基準に理念が完全に反映されており、人材要件に具体的に落とし込まれている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi1" value="5">
+                        採用面接などで理念は伝えているが、選考基準への反映は不十分である
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi1" value="3">
+                        理念は存在するが、採用活動で特に意識していない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi1" value="0">
+                        理念がない、または属人的だ。
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">②採用広報でのブランド体現</div>
+                    <label class="option">
+                        <input type="radio" name="bi2" value="8">
+                        採用サイトや求人票、面談で理念が強く打ち出されている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi2" value="5">
+                        一部の媒体では理念を伝えているが、一貫性はない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi2" value="3">
+                        採用広報では条件面などの説明が中心で、理念は伝えきれていない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi2" value="0">
+                        採用広報の戦略がない、または属人的だ。
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">③組織構築と理念の一貫性</div>
+                    <label class="option">
+                        <input type="radio" name="bi3" value="8">
+                        社内制度・評価・報酬に理念が反映され、浸透施策も積極的に行われている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi3" value="5">
+                        理念を定めているが、浸透に向けた取り組みや制度への反映一部にとどまっている
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi3" value="3">
+                        理念は存在するが、社内に浸透していない・理解されていない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi3" value="0">
+                        理念や制度がなく、各自の価値観に任せた行動となっている
+                    </label>
+                </div>
+
+                <div class="question">
+                    <div class="question-title">④リーダー層の理念体現</div>
+                    <label class="option">
+                        <input type="radio" name="bi4" value="8">
+                        マネジメント層が理念の体現者となり、模範的な行動を示している
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi4" value="5">
+                        一部のリーダーは理念に基づいた行動をしているが、ばらつきがある
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi4" value="3">
+                        リーダー層が理念を体現できておらず、部下の模範になっていない
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="bi4" value="0">
+                        リーダーシップ育成や行動規範に関する教育自体が行われていない
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" class="calculate-btn" onclick="calculateResults()">診断結果を見る</button>
+            
+            <div class="loading" id="loading">
+                データを分析中...
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✅ 診断が完了しました！
+            </div>
+
+            <div class="error-message" id="errorMessage">
+                ❌ すべての質問に回答してください。
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <div class="result-card">
+                    <div class="total-score" id="totalScore">0</div>
+                    <div class="score-label">総合スコア（100点満点）</div>
+                </div>
+
+                <div class="pattern-info">
+                    <div class="pattern-display">
+                        <div class="pattern-item">
+                            <div class="pattern-category-label">Mind Identity</div>
+                            <div class="pattern-grade grade-A" id="miGrade">A</div>
+                            <div class="pattern-category-title">企業理念・思想・価値観</div>
+                        </div>
+                        <div class="pattern-item">
+                            <div class="pattern-category-label">Visual Identity</div>
+                            <div class="pattern-grade grade-A" id="viGrade">A</div>
+                            <div class="pattern-category-title">ロゴ・デザイン・ビジュアル表現</div>
+                        </div>
+                        <div class="pattern-item">
+                            <div class="pattern-category-label">Behavior Identity</div>
+                            <div class="pattern-grade grade-A" id="biGrade">A</div>
+                            <div class="pattern-category-title">行動・組織・人材・文化</div>
+                        </div>
+                    </div>
+                    <div class="pattern-overall">
+                        <div class="pattern-code" id="patternCode">AAA</div>
+                        <div class="pattern-description" id="patternDescription">企業タイプの説明がここに表示されます</div>
+                    </div>
+                </div>
+
+                <div class="category-results">
+                    <div class="category-result mi-result">
+                        <div class="category-result-header">
+                            <div class="category-result-icon">MI</div>
+                            <div class="category-result-title">Mind Identity</div>
+                        </div>
+                        <div class="category-score" id="miScore">0</div>
+                        <div class="category-grade-display">
+                            <div class="category-grade grade-A" id="miDetailGrade">A</div>
+                            <div class="category-level" id="miLevel">-</div>
+                        </div>
+                    </div>
+                    <div class="category-result vi-result">
+                        <div class="category-result-header">
+                            <div class="category-result-icon">VI</div>
+                            <div class="category-result-title">Visual Identity</div>
+                        </div>
+                        <div class="category-score" id="viScore">0</div>
+                        <div class="category-grade-display">
+                            <div class="category-grade grade-A" id="viDetailGrade">A</div>
+                            <div class="category-level" id="viLevel">-</div>
+                        </div>
+                    </div>
+                    <div class="category-result bi-result">
+                        <div class="category-result-header">
+                            <div class="category-result-icon">BI</div>
+                            <div class="category-result-title">Behavior Identity</div>
+                        </div>
+                        <div class="category-score" id="biScore">0</div>
+                        <div class="category-grade-display">
+                            <div class="category-grade grade-A" id="biDetailGrade">A</div>
+                            <div class="category-level" id="biLevel">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3>改善提案</h3>
+                    <div id="recommendationsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 詳細な改善提案データベース（知識ベース統合版）
+        const PATTERN_RECOMMENDATIONS = {
+            'AAA': {
+                description: 'ブランド先進企業レベル - 理念・ビジュアル・組織すべてが完璧',
+                improvements: {
+                    mi: '',
+                    vi: '',
+                    bi: '',
+                    general: '現状維持リスクや市場変化への対応遅れの可能性があります。'
+                },
+                actions: {
+                    mi: '',
+                    vi: '',
+                    bi: '',
+                    general: '定期的なブランド監査の実施（年2回）、競合分析による差別化ポイントの再確認、グローバル展開に向けたブランド戦略策定を推奨します。'
+                },
+                urgency: 'low'
+            }
+        };
+
+        // 基本的なレベル別改善点・提案の知識ベース
+        const KNOWLEDGE_BASE = {
+            mi: {
+                D: {
+                    improvement: '企業理念が策定されていない、または形式的すぎる状態です。理念の内容が抽象的で従業員に理解されにくく、企業の存在意義や社会的価値が不明確になっています。かなり危険な状態です。理念がないままスケールすると組織崩壊や人材流出、採用難、そして結果的に競争力の低下につながります。企業理念は組織の根っこです。',
+                    action: '企業理念の明確化を最優先で取り組みましょう。策定にあたっては、まず社内外への調査等を通じて自社の現状を客観的に把握したうえで、パーパスを検討することが必要です。また、経営層だけで検討せず、若手を中心とした未来を担うキーパーソンを選出して委員会を設置し、同メンバーを浸透・定着を図る主役（伝道師）にすることで、全社員の目線を引き上げ、納得を得ることも重要なポイントです。'
+                },
+                C: {
+                    improvement: '理念の意味や背景への理解不足、一方的な押し付けによる腹落ち不足が見られます。理念とサービスが接続されていない場合、綺麗事を掲げているだけになります。理念とは聞こえのいいキャッチコピーではなく、実行すべき指針なのです。',
+                    action: '理念の意味や背景が理解されていない場合も、浸透しない原因となります。自社の理念がどのような背景で策定されたのか、また、創設者・経営者のどのような信念が反映されているのか、従業員に対して説明する機会が必要です。意味や背景を理解して初めて、普段の行動や判断に反映されるようになります。'
+                },
+                B: {
+                    improvement: '具体的な浸透施策の欠如、継続的な取り組みの不足、体現行動の可視化不足があります。理念に沿った思考と行動は企業文化をつくるために必要です。全てのメンバーが理念を理解・実践できる体制を整える必要があります。',
+                    action: 'MVVを"浸透させる"のではなくMVVを"体現した行動を見つけて可視化する"。まずは「今ある良い行動」に目を向けて、自社の価値観を体現していることの意味付けをすることから取り組みを進めてください。体現行動の発見と可視化、表彰制度による良い行動の称賛、定期的な対話会の実施を行いましょう。'
+                },
+                A: {
+                    improvement: '',
+                    action: ''
+                }
+            },
+            vi: {
+                D: {
+                    improvement: 'ブランドメッセージとの不整合、視認性・記憶性の不足、汎用性・展開性の欠如、競合他社との差別化不足があります。ロゴは企業の顔です。デザインがイマイチだと会社の信頼も失われます。デザインというのは、わかりやすい投資です。また採用観点でも、デザインがダサい企業は不利になります。',
+                    action: 'ブランド戦略に基づいたロゴリニューアル、様々なメディアでの視認性確保、最小サイズでの識別性向上、禁止事項を含むロゴガイドライン策定を実行してください。企業理念を体現するロゴを制作し、プロのデザイナーに依頼し、理念とサービスを視覚的に表現できるロゴを開発しましょう。'
+                },
+                C: {
+                    improvement: '形式的で実用性に欠けるガイドライン、社内外での活用不足、更新・メンテナンス不備があります。ブランドガイドラインは単なるデザインの統一ではありません。デザインが統一されるということは、「顧客が受ける印象が統一される」ということです。',
+                    action: 'ブランドガイドラインを策定し、全社で徹底的に運用してください。ロゴ、色、フォント、トーンなど、一貫したブランド表現のルールを作りましょう。コンパクトで実用的なガイドライン作成、デジタル化による検索性向上、定期的な更新・アップデート体制の確立が重要です。'
+                },
+                B: {
+                    improvement: '時代遅れのビジュアル表現、競合との差別化不足、新しいメディアへの対応不備があります。ブランドは時代に応じて変化させる部分があります。適切な頻度で適度な更新がされなければ、古い企業という印象を与えることになります。',
+                    action: 'ブランド表現の定期的な見直しと改善を行ってください。時代や市場の変化に合わせて、適切なタイミングでアップデートしましょう。定期的なデザイン監査の実施、トレンド分析と適用検討、A/Bテストによる効果測定を行ってください。'
+                },
+                A: {
+                    improvement: '',
+                    action: ''
+                }
+            },
+            bi: {
+                D: {
+                    improvement: '求める人材像と企業理念のミスマッチ、採用メッセージの一貫性不足、採用プロセスでの理念訴求不足があります。会社を体現するのは人です。理念に合わない人を採用すると企業文化が崩れます。リーダー層が理念を体現しなければ、その会社に浸透することはありません。',
+                    action: '採用基準に理念を明確に反映させてください。人材要件に理念との適合性を具体的に織り込み、面接でも理念への共感度を確認しましょう。企業理念に基づく人材像の明確化、採用コンセプトの策定と社内共有、採用プロセス全体での一貫したメッセージが重要です。'
+                },
+                C: {
+                    improvement: '理念と組織運営の乖離、評価制度と理念の不整合、部門間での理念浸透度格差があります。結局、理念は掲げるためにあるのではなく、「適切な行動をして企業成長する」ためにあります。組織構築に活かすことがマストです。',
+                    action: '社内制度・評価・報酬システムに理念を反映させてください。理念に沿った行動が正しく評価される仕組みを構築しましょう。理念に基づく行動指針の策定、評価制度への理念要素の組み込み、昇進・昇格基準での理念体現度考慮が必要です。'
+                },
+                B: {
+                    improvement: '企業の魅力や価値観の発信不足、ターゲット求職者への訴求力不足、競合他社との差別化不足があります。よく母集団形成と言われますが、理念と合わない人が100人1000人と集まっても意味がありません。理念と合う人を採用するのがゴールです。',
+                    action: '採用サイトや求人票で理念を強く打ち出してください。理念に共感する人材が集まるよう、採用広報の内容を見直しましょう。従業員のブランドアンバサダー化、SNSを活用した情報発信、社員インタビューによるリアルな声の発信を推進してください。'
+                },
+                A: {
+                    improvement: '',
+                    action: ''
+                }
+            }
+        };
+
+        // 全パターンを動的生成する関数
+        function generateAllPatterns() {
+            const levels = ['A', 'B', 'C', 'D'];
+            
+            levels.forEach(mi => {
+                levels.forEach(vi => {
+                    levels.forEach(bi => {
+                        const pattern = mi + vi + bi;
+                        if (!PATTERN_RECOMMENDATIONS[pattern]) {
+                            const criticalCount = [mi, vi, bi].filter(l => l === 'D').length;
+                            const poorCount = [mi, vi, bi].filter(l => l === 'C').length;
+                            
+                            let urgency = 'low';
+                            let description = '';
+                            
+                            if (criticalCount >= 2) {
+                                urgency = 'critical';
+                                description = '複数領域で機能不全 - 緊急改革が必要';
+                            } else if (criticalCount >= 1) {
+                                urgency = 'high';
+                                description = '一部領域で機能不全 - 早急な対応が必要';
+                            } else if (poorCount >= 2) {
+                                urgency = 'medium';
+                                description = '複数領域で改善が必要';
+                            } else if (poorCount >= 1) {
+                                urgency = 'medium';
+                                description = '部分的な改善で競争力向上';
+                            } else {
+                                urgency = 'low';
+                                description = '高水準の維持と更なる向上';
+                            }
+
+                            PATTERN_RECOMMENDATIONS[pattern] = {
+                                description: description,
+                                improvements: {
+                                    mi: KNOWLEDGE_BASE.mi[mi].improvement,
+                                    vi: KNOWLEDGE_BASE.vi[vi].improvement,
+                                    bi: KNOWLEDGE_BASE.bi[bi].improvement,
+                                    general: `MI:${mi}レベル、VI:${vi}レベル、BI:${bi}レベルの状況です。`
+                                },
+                                actions: {
+                                    mi: KNOWLEDGE_BASE.mi[mi].action,
+                                    vi: KNOWLEDGE_BASE.vi[vi].action,
+                                    bi: KNOWLEDGE_BASE.bi[bi].action,
+                                    general: '各領域の改善を段階的に実行し、統合的なブランド戦略を構築してください。'
+                                },
+                                urgency: urgency
+                            };
+                        }
+                    });
+                });
+            });
+        }
+
+        // パターン生成を実行
+        generateAllPatterns();
+
+        function updateProgress() {
+            const totalQuestions = 12;
+            const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+            const progress = (answeredQuestions / totalQuestions) * 100;
+            const remainingQuestions = totalQuestions - answeredQuestions;
+            
+            document.getElementById('fixedProgressFill').style.width = progress + '%';
+            document.getElementById('progressPercentage').textContent = Math.round(progress) + '%';
+            
+            const questionsRemainingElement = document.getElementById('questionsRemaining');
+            if (remainingQuestions === 0) {
+                questionsRemainingElement.textContent = '完了！';
+                questionsRemainingElement.style.background = 'rgba(39, 174, 96, 0.2)';
+                questionsRemainingElement.style.borderColor = 'rgba(39, 174, 96, 0.5)';
+                questionsRemainingElement.style.color = '#2ecc71';
+            } else {
+                questionsRemainingElement.textContent = `残り ${remainingQuestions}問`;
+            }
+            
+            const fixedProgress = document.getElementById('fixedProgress');
+            if (answeredQuestions > 0) {
+                fixedProgress.style.display = 'block';
+            }
+        }
+
+        function getScoreLevel(score, category) {
+            if (category === 'MI') {
+                if (score >= 30) return 'A';
+                if (score >= 20) return 'B';
+                if (score >= 10) return 'C';
+                return 'D';
+            } else { // VI, BI
+                if (score >= 26) return 'A';
+                if (score >= 18) return 'B';
+                if (score >= 8) return 'C';
+                return 'D';
+            }
+        }
+
+        function getLevel(score, maxScore) {
+            const percentage = (score / maxScore) * 100;
+            if (percentage >= 90) return { level: 'excellent', text: '優秀' };
+            if (percentage >= 70) return { level: 'good', text: '良好' };
+            if (percentage >= 50) return { level: 'fair', text: '普通' };
+            return { level: 'poor', text: '要改善' };
+        }
+
+        function updateGradeDisplay(gradeElement, grade) {
+            gradeElement.textContent = grade;
+            gradeElement.className = `pattern-grade grade-${grade}`;
+        }
+
+        function updateDetailGradeDisplay(gradeElement, grade) {
+            gradeElement.textContent = grade;
+            gradeElement.className = `category-grade grade-${grade}`;
+        }
+
+        function calculateScores() {
+            let miScore = 0, viScore = 0, biScore = 0;
+
+            // MI scores
+            for (let i = 1; i <= 4; i++) {
+                const selected = document.querySelector('input[name="mi' + i + '"]:checked');
+                if (selected) miScore += parseInt(selected.value);
+            }
+
+            // VI scores
+            for (let i = 1; i <= 4; i++) {
+                const selected = document.querySelector('input[name="vi' + i + '"]:checked');
+                if (selected) viScore += parseInt(selected.value);
+            }
+
+            // BI scores
+            for (let i = 1; i <= 4; i++) {
+                const selected = document.querySelector('input[name="bi' + i + '"]:checked');
+                if (selected) biScore += parseInt(selected.value);
+            }
+
+            return { miScore, viScore, biScore, totalScore: miScore + viScore + biScore };
+        }
+
+        function generateRecommendations(miLevel, viLevel, biLevel) {
+            const pattern = miLevel + viLevel + biLevel;
+            return PATTERN_RECOMMENDATIONS[pattern] || PATTERN_RECOMMENDATIONS['CCC'];
+        }
+
+        function calculateResults() {
+            const totalQuestions = 12;
+            const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+            const userName = document.getElementById('userName').value.trim();
+            
+            if (!userName) {
+                alert('お名前を入力してください。');
+                document.getElementById('userName').focus();
+                return;
+            }
+            
+            if (answeredQuestions < totalQuestions) {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = `❌ すべての質問に回答してください。（${answeredQuestions}/${totalQuestions}問回答済み）`;
+                return;
+            }
+
+            const scores = calculateScores();
+            const button = document.querySelector('.calculate-btn');
+            const loading = document.getElementById('loading');
+
+            button.disabled = true;
+            loading.style.display = 'block';
+
+            // スコア表示
+            document.getElementById('totalScore').textContent = scores.totalScore;
+            document.getElementById('miScore').textContent = scores.miScore;
+            document.getElementById('viScore').textContent = scores.viScore;
+            document.getElementById('biScore').textContent = scores.biScore;
+
+            // レベル判定
+            const miLevel = getScoreLevel(scores.miScore, 'MI');
+            const viLevel = getScoreLevel(scores.viScore, 'VI');
+            const biLevel = getScoreLevel(scores.biScore, 'BI');
+
+            // パターン表示部分のグレード更新
+            updateGradeDisplay(document.getElementById('miGrade'), miLevel);
+            updateGradeDisplay(document.getElementById('viGrade'), viLevel);
+            updateGradeDisplay(document.getElementById('biGrade'), biLevel);
+
+            // 詳細結果部分のグレード更新
+            updateDetailGradeDisplay(document.getElementById('miDetailGrade'), miLevel);
+            updateDetailGradeDisplay(document.getElementById('viDetailGrade'), viLevel);
+            updateDetailGradeDisplay(document.getElementById('biDetailGrade'), biLevel);
+
+            // パターン情報表示
+            const pattern = miLevel + viLevel + biLevel;
+            document.getElementById('patternCode').textContent = pattern;
+            document.getElementById('patternDescription').textContent = PATTERN_RECOMMENDATIONS[pattern].description;
+
+            // 各カテゴリレベル表示
+            const miLevelInfo = getLevel(scores.miScore, 36);
+            const viLevelInfo = getLevel(scores.viScore, 32);
+            const biLevelInfo = getLevel(scores.biScore, 32);
+
+            const miLevelElement = document.getElementById('miLevel');
+            const viLevelElement = document.getElementById('viLevel');
+            const biLevelElement = document.getElementById('biLevel');
+
+            miLevelElement.textContent = miLevelInfo.text;
+            miLevelElement.className = 'category-level level-' + miLevelInfo.level;
+
+            viLevelElement.textContent = viLevelInfo.text;
+            viLevelElement.className = 'category-level level-' + viLevelInfo.level;
+
+            biLevelElement.textContent = biLevelInfo.text;
+            biLevelElement.className = 'category-level level-' + biLevelInfo.level;
+
+            // 改善提案生成
+            const recommendations = generateRecommendations(miLevel, viLevel, biLevel);
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+
+            // 全体的な改善提案（もしある場合）
+            if (recommendations.improvements.general || recommendations.actions.general) {
+                const generalSection = document.createElement('div');
+                generalSection.className = `recommendation-item urgency-${recommendations.urgency}`;
+                let generalContent = '';
+                
+                if (recommendations.improvements.general) {
+                    generalContent += `<div style="margin-bottom: 15px;"><strong>【現状認識】</strong><br>${recommendations.improvements.general}</div>`;
+                }
+                if (recommendations.actions.general) {
+                    generalContent += `<div><strong>【改善アクション】</strong><br>${recommendations.actions.general}</div>`;
+                }
+                
+                generalSection.innerHTML = `
+                    <div class="recommendation-category">総合的な改善提案</div>
+                    <div class="recommendation-content">${generalContent}</div>
+                `;
+                recommendationsList.appendChild(generalSection);
+            }
+
+            // MI改善提案
+            if (recommendations.improvements.mi || recommendations.actions.mi) {
+                const miSection = document.createElement('div');
+                miSection.className = `recommendation-item urgency-${recommendations.urgency}`;
+                let miContent = '';
+                
+                if (recommendations.improvements.mi) {
+                    miContent += `<div style="margin-bottom: 15px;"><strong>【改善点】</strong><br>${recommendations.improvements.mi}</div>`;
+                }
+                if (recommendations.actions.mi) {
+                    miContent += `<div><strong>【具体的アクション】</strong><br>${recommendations.actions.mi}</div>`;
+                }
+                
+                miSection.innerHTML = `
+                    <div class="recommendation-category">MI - Mind Identity（企業理念・思想・価値観）</div>
+                    <div class="recommendation-content">${miContent}</div>
+                `;
+                recommendationsList.appendChild(miSection);
+            }
+
+            // VI改善提案
+            if (recommendations.improvements.vi || recommendations.actions.vi) {
+                const viSection = document.createElement('div');
+                viSection.className = `recommendation-item urgency-${recommendations.urgency}`;
+                let viContent = '';
+                
+                if (recommendations.improvements.vi) {
+                    viContent += `<div style="margin-bottom: 15px;"><strong>【改善点】</strong><br>${recommendations.improvements.vi}</div>`;
+                }
+                if (recommendations.actions.vi) {
+                    viContent += `<div><strong>【具体的アクション】</strong><br>${recommendations.actions.vi}</div>`;
+                }
+                
+                viSection.innerHTML = `
+                    <div class="recommendation-category">VI - Visual Identity（ロゴ・デザイン・ビジュアル表現）</div>
+                    <div class="recommendation-content">${viContent}</div>
+                `;
+                recommendationsList.appendChild(viSection);
+            }
+
+            // BI改善提案
+            if (recommendations.improvements.bi || recommendations.actions.bi) {
+                const biSection = document.createElement('div');
+                biSection.className = `recommendation-item urgency-${recommendations.urgency}`;
+                let biContent = '';
+                
+                if (recommendations.improvements.bi) {
+                    biContent += `<div style="margin-bottom: 15px;"><strong>【改善点】</strong><br>${recommendations.improvements.bi}</div>`;
+                }
+                if (recommendations.actions.bi) {
+                    biContent += `<div><strong>【具体的アクション】</strong><br>${recommendations.actions.bi}</div>`;
+                }
+                
+                biSection.innerHTML = `
+                    <div class="recommendation-category">BI - Behavior Identity（行動・組織・人材・文化）</div>
+                    <div class="recommendation-content">${biContent}</div>
+                `;
+                recommendationsList.appendChild(biSection);
+            }
+
+            setTimeout(() => {
+                button.disabled = false;
+                loading.style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('resultSection').style.display = 'block';
+                document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+            }, 1500);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('fixedProgress').style.display = 'none';
+            
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(function(radio) {
+                radio.addEventListener('change', updateProgress);
+            });
+
+            const labels = document.querySelectorAll('.option');
+            labels.forEach(function(label) {
+                label.addEventListener('click', function() {
+                    const parent = this.parentElement;
+                    const siblings = parent.querySelectorAll('.option');
+                    siblings.forEach(function(sibling) {
+                        sibling.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
